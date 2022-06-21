@@ -59,7 +59,11 @@ merely an interface for scene inspection and does not support reconstruction.
 See the LICENSE.txt file and the source file headers for more details.
 
 # Notes
-https://www.cs.cmu.edu/~reconstruction/MVE.html
-https://www.cs.cmu.edu/~reconstruction/basic_workflow.html#capture
+
+MVE: https://www.cs.cmu.edu/~reconstruction/MVE.html
+
+TUTORIAL: https://www.cs.cmu.edu/~reconstruction/basic_workflow.html#capture
+
 Easy to build with msys2 mingwx64
+
 The only problem was with GOMP. You have to manually set CMAKE_CXX_FLAGS -fopenmp
