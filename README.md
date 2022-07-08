@@ -67,3 +67,6 @@ TUTORIAL: https://www.cs.cmu.edu/~reconstruction/basic_workflow.html#capture
 Easy to build with msys2 mingwx64
 
 The only problem was with GOMP. You have to manually set CMAKE_CXX_FLAGS -fopenmp
+
+MVE in museum: https://informatik.hs-bremerhaven.de/dh2018/doku/02-Erstellung_MVE-Pipeline.html
+
