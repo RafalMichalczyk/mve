@@ -56,6 +56,10 @@
 #define BUNDLER_IMAGE_DIR ""
 #define VIEWS_DIR "views/"
 
+// licensing by rafal
+#include <array>
+#include <curl/curl.h>  //"D:/COMP/openMVG/make/vcpkg_installed/x64-windows/include/curl/curl.h" 
+
 typedef std::vector<std::string> StringVector;
 typedef std::vector<util::fs::File> FileVector;
 typedef FileVector::iterator FileIterator;
@@ -1098,13 +1102,110 @@ import_images (AppSettings const& conf)
         << "took " << timer.get_elapsed() << " ms." << std::endl;
 }
 
+
+//
+// L I C E N S I N G by Rafal ///////////////////////////////////////////////////
+// 
+std::string getUUID()
+{
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen("wmic csproduct get uuid", "r"), _pclose);
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+
+    bool isFirstLine = true;
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        if (isFirstLine) {  // skip the first line
+            isFirstLine = false;
+            continue;
+        }
+        result += buffer.data();
+    }
+
+    // Trim leading and trailing whitespaces
+    result.erase(result.begin(), std::find_if(result.begin(), result.end(), [](int ch) {
+        return !std::isspace(ch);
+        }));
+    result.erase(std::find_if(result.rbegin(), result.rend(), [](int ch) {
+        return !std::isspace(ch);
+        }).base(), result.end());
+
+    return result;
+}
+
+size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp)
+{
+    size_t totalSize = size * nmemb;
+    userp->append((char*)contents, totalSize);
+    return totalSize;
+}
+
+bool validateUUID(std::string uuid, std::string tool_name, std::string video_name)
+{
+    CURL* curl;
+    CURLcode res;
+    std::string readBuffer;
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl = curl_easy_init();
+
+    if (curl) {
+        const char* wimbaserver = std::getenv("WIMBASCAN_LICENSE_SERVER");
+        curl_easy_setopt(curl, CURLOPT_URL, wimbaserver );
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+        struct curl_slist* headers = NULL;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+        std::string postData = "{\"hkey\":\"" + uuid + "\",\"video\":\"" + video_name + "\" ,\"name\":\"" + tool_name + "\"}";
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str());
+
+        res = curl_easy_perform(curl);
+
+        if (res != CURLE_OK)
+            fprintf(stderr, "##### ##### ##### ##### #####\nConnection with lic-server failed: %s\n", curl_easy_strerror(res));
+
+        //std::cout << "curl: " << postData << std::endl;  
+        //std::cout << "Response: " << readBuffer << std::endl;  // Print the response from the server
+
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(headers);
+    }
+
+    curl_global_cleanup();
+
+    if (readBuffer.find("success") != std::string::npos) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 /* ---------------------------------------------------------------- */
 
 int
 main (int argc, char** argv)
-{
+{    
     util::system::register_segfault_handler();
     util::system::print_build_timestamp("MVE Makescene");
+
+    // LICENSING 
+    std::string uuid = getUUID();
+    //std::cout << "UUID: " << uuid;
+    if (validateUUID(uuid, "mve_makescene.exe", "unknown_video")) {
+        //std::cout << "Validation successful!\n";
+    }
+    else {
+        std::cout << "##### ##### ##### ##### #####\n";
+        std::cout << "ERROR: WimbaScan online license validation failed!\n";
+        std::cout << "\tPlease contact rafal@wimba.vet for valid licence key.\n";
+        return EXIT_FAILURE;
+    }
 
     /* Setup argument parser. */
     util::Arguments args;

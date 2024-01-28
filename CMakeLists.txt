@@ -46,6 +46,18 @@ include(CPack)
 find_package(OpenMP REQUIRED)
 add_compile_options(${OpenMP_CXX_FLAGS})
 
+# Znajdź pakiet cURL
+find_package(CURL REQUIRED)
+
+# (Opcjonalnie) Dodaj katalogi nagłówków cURL do Twojego celu
+#target_include_directories(TwojCel PUBLIC ${CURL_INCLUDE_DIRS})
+
+# Linkuj Twój cel z biblioteką cURL
+#target_link_libraries(makescene PUBLIC ${CURL_LIBRARIES})
+
+# Ustaw definicje i opcje kompilacji dla celu, jeśli jest to konieczne
+# target_compile_definitions(TwojCel PUBLIC ${CURL_DEFINITIONS})
+
 include_directories(libs)
 
 add_subdirectory(libs)

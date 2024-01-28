@@ -70,3 +70,10 @@ The only problem was with GOMP. You have to manually set CMAKE_CXX_FLAGS -fopenm
 
 MVE in museum: https://informatik.hs-bremerhaven.de/dh2018/doku/02-Erstellung_MVE-Pipeline.html
 
+# BUILD RM
+
+Koniecznie dodaj do cmake:
+CMAKE ---> CMAKE_EXE_LINKER_FLAGS -fopenmp
+bo inaczej dmrecon.exe nie chce się zlinkopwać z OpenMP
+
+
